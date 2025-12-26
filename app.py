@@ -5,6 +5,7 @@
 from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from stock_analyzer import JunGeAnalyzer
+from boll_analyzer import BollAnalyzer
 from feishu_bot import push_to_feishu
 from datetime import datetime
 import json
@@ -17,7 +18,7 @@ try:
     from config import FEISHU_WEBHOOK_URL, CONFIG
 except ImportError:
     FEISHU_WEBHOOK_URL = ""
-    CONFIG = {"recommend_count": 3}
+    CONFIG = {"recommend_count": 6}
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
@@ -27,10 +28,15 @@ cache = {
     'recommendations': None,
     'last_update': None,
     'hot_sectors': None,
-    'is_loading': False
+    'is_loading': False,
+    # BOLL策略缓存
+    'boll_recommendations': None,
+    'boll_last_update': None,
+    'boll_is_loading': False
 }
 
 analyzer = JunGeAnalyzer()
+boll_analyzer = BollAnalyzer()
 
 
 def update_cache():
@@ -259,7 +265,103 @@ def get_status():
             'is_loading': cache['is_loading'],
             'last_update': cache['last_update'],
             'has_data': cache['recommendations'] is not None,
-            'feishu_configured': bool(FEISHU_WEBHOOK_URL)
+            'feishu_configured': bool(FEISHU_WEBHOOK_URL),
+            'boll_is_loading': cache['boll_is_loading'],
+            'boll_last_update': cache['boll_last_update'],
+            'boll_has_data': cache['boll_recommendations'] is not None
+        }
+    })
+
+
+def update_boll_cache():
+    """更新BOLL策略缓存"""
+    global cache
+    cache['boll_is_loading'] = True
+    try:
+        recommendations = boll_analyzer.get_recommendations(top_n=CONFIG.get('recommend_count', 6))
+        cache['boll_recommendations'] = recommendations
+        cache['boll_last_update'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    except Exception as e:
+        print(f"[ERROR] BOLL cache update failed: {e}")
+    finally:
+        cache['boll_is_loading'] = False
+
+
+@app.route('/api/boll_recommendations')
+def get_boll_recommendations():
+    """获取BOLL策略推荐"""
+    force_refresh = request.args.get('refresh', 'false').lower() == 'true'
+    
+    if cache['boll_is_loading']:
+        return jsonify({
+            'success': True,
+            'loading': True,
+            'message': 'BOLL strategy analyzing...'
+        })
+    
+    need_refresh = (
+        force_refresh or
+        cache['boll_recommendations'] is None or
+        cache['boll_last_update'] is None
+    )
+    
+    if cache['boll_last_update']:
+        last_date = cache['boll_last_update'].split(' ')[0]
+        today_date = datetime.now().strftime('%Y-%m-%d')
+        if last_date != today_date:
+            need_refresh = True
+    
+    if need_refresh:
+        thread = threading.Thread(target=update_boll_cache)
+        thread.start()
+        thread.join(timeout=120)
+        
+        if cache['boll_is_loading']:
+            return jsonify({
+                'success': True,
+                'loading': True,
+                'message': 'BOLL strategy analyzing...'
+            })
+    
+    # 格式化推荐数据
+    formatted = []
+    for rec in (cache['boll_recommendations'] or []):
+        boll = rec.get('boll', {})
+        formatted.append({
+            'code': str(rec['code']),
+            'name': str(rec['name']),
+            'sector': str(rec['sector']),
+            'sector_rank': int(rec['sector_rank']),
+            'score': float(round(rec['score'], 1)),
+            'latest_price': float(round(rec['latest_price'], 2)),
+            'ma20': float(round(rec.get('ma20', 0), 2)),
+            'change_pct': float(round(rec.get('change_pct', 0), 2)),
+            'market_cap': float(round(rec.get('market_cap', 0), 1)),
+            'boll': {
+                'bandwidth': float(round(boll.get('bandwidth', 0), 2)),
+                'is_contracting': bool(boll.get('is_contracting', False)),
+                'breakthrough_ma20': bool(boll.get('breakthrough_ma20', False)),
+                'above_ma20': bool(boll.get('above_ma20', False))
+            },
+            'volume_change': {
+                'volume_change_pct': float(round(rec['volume_change'].get('volume_change_pct', 0), 1)),
+                'is_amplified': bool(rec['volume_change'].get('is_amplified', False))
+            },
+            'money_flow': {
+                'consecutive_inflow': int(rec['money_flow'].get('consecutive_inflow', 0)),
+                'meets_criteria': bool(rec['money_flow'].get('meets_criteria', False))
+            },
+            'stop_loss': float(round(rec['latest_price'] * 0.95, 2))
+        })
+    
+    return jsonify({
+        'success': True,
+        'loading': False,
+        'data': {
+            'recommendations': formatted,
+            'last_update': cache['boll_last_update'],
+            'date': datetime.now().strftime('%Y年%m月%d日'),
+            'count': len(formatted)
         }
     })
 

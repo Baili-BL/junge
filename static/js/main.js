@@ -1,35 +1,81 @@
 /**
- * 钧哥天下无双 - 股票推荐系统前端逻辑
+ * 股票推荐系统 - 前端逻辑
  */
 
-// API基础URL
 const API_BASE = '';
 
 // DOM元素
 const elements = {
     currentDate: document.getElementById('currentDate'),
+    // 钧哥策略
     updateStatus: document.getElementById('updateStatus'),
     btnRefresh: document.getElementById('btnRefresh'),
     loadingState: document.getElementById('loadingState'),
     emptyState: document.getElementById('emptyState'),
     stockGrid: document.getElementById('stockGrid'),
-    recCount: document.getElementById('recCount')
+    recCount: document.getElementById('recCount'),
+    jungePage: document.getElementById('jungePage'),
+    // BOLL策略
+    bollUpdateStatus: document.getElementById('bollUpdateStatus'),
+    btnBollRefresh: document.getElementById('btnBollRefresh'),
+    bollLoadingState: document.getElementById('bollLoadingState'),
+    bollEmptyState: document.getElementById('bollEmptyState'),
+    bollStockGrid: document.getElementById('bollStockGrid'),
+    bollRecCount: document.getElementById('bollRecCount'),
+    bollPage: document.getElementById('bollPage')
 };
+
+// 当前Tab
+let currentTab = 'junge';
 
 /**
  * 初始化应用
  */
 function init() {
-    // 设置当前日期
     updateCurrentDate();
-    
-    // 获取推荐数据
     fetchRecommendations();
+    fetchBollRecommendations();
     
     // 定时刷新（每10分钟）
     setInterval(() => {
-        fetchRecommendations();
+        if (currentTab === 'junge') {
+            fetchRecommendations();
+        } else {
+            fetchBollRecommendations();
+        }
     }, 10 * 60 * 1000);
+}
+
+/**
+ * Tab切换
+ */
+function switchTab(tab) {
+    currentTab = tab;
+    
+    // 更新Tab按钮状态
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tab === tab) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // 切换页面
+    if (tab === 'junge') {
+        elements.jungePage.style.display = 'block';
+        elements.bollPage.style.display = 'none';
+        document.body.classList.remove('boll-active');
+    } else {
+        elements.jungePage.style.display = 'none';
+        elements.bollPage.style.display = 'block';
+        document.body.classList.add('boll-active');
+    }
+    
+    // 添加动画
+    const activePage = tab === 'junge' ? elements.jungePage : elements.bollPage;
+    activePage.style.animation = 'none';
+    activePage.offsetHeight; // 触发reflow
+    activePage.style.animation = 'fadeIn 0.3s ease';
 }
 
 /**
@@ -52,20 +98,21 @@ function updateStatus(status, text) {
     
     statusDot.className = 'status-dot';
     if (status === 'loading') {
-        statusDot.classList.add('loading');
+        statusDot.style.background = 'var(--gold-primary)';
+    } else {
+        statusDot.style.background = 'var(--fall-green)';
     }
     statusText.textContent = text;
 }
 
 /**
- * 获取推荐数据
+ * 获取钧哥策略推荐
  */
 async function fetchRecommendations(forceRefresh = false) {
     try {
-        // 显示加载状态
         showLoading(true);
-        updateStatus('loading', '正在分析...');
-        elements.btnRefresh.classList.add('loading');
+        updateStatus('loading', '分析中...');
+        if (elements.btnRefresh) elements.btnRefresh.classList.add('loading');
         
         const url = forceRefresh 
             ? `${API_BASE}/api/recommendations?refresh=true`
@@ -75,24 +122,23 @@ async function fetchRecommendations(forceRefresh = false) {
         const result = await response.json();
         
         if (result.loading) {
-            // 如果服务器正在处理，轮询等待
             setTimeout(() => fetchRecommendations(false), 3000);
             return;
         }
         
         if (result.success && result.data) {
             renderRecommendations(result.data);
-            updateStatus('ready', `更新于 ${result.data.last_update || '刚刚'}`);
+            updateStatus('ready', `${result.data.last_update || '刚刚'}`);
         } else {
             showEmpty();
-            updateStatus('error', '获取数据失败');
+            updateStatus('error', '获取失败');
         }
     } catch (error) {
         console.error('获取推荐失败:', error);
         showEmpty();
         updateStatus('error', '网络错误');
     } finally {
-        elements.btnRefresh.classList.remove('loading');
+        if (elements.btnRefresh) elements.btnRefresh.classList.remove('loading');
     }
 }
 
@@ -102,9 +148,7 @@ async function fetchRecommendations(forceRefresh = false) {
 function showLoading(show) {
     elements.loadingState.style.display = show ? 'flex' : 'none';
     elements.emptyState.style.display = 'none';
-    if (show) {
-        elements.stockGrid.innerHTML = '';
-    }
+    if (show) elements.stockGrid.innerHTML = '';
 }
 
 /**
@@ -122,11 +166,7 @@ function showEmpty() {
  */
 function renderRecommendations(data) {
     const { recommendations, count } = data;
-    
-    // 更新推荐数量
     elements.recCount.textContent = count;
-    
-    // 隐藏加载状态
     showLoading(false);
     
     if (!recommendations || recommendations.length === 0) {
@@ -134,14 +174,13 @@ function renderRecommendations(data) {
         return;
     }
     
-    // 渲染股票卡片
     elements.stockGrid.innerHTML = recommendations.map((stock, index) => 
         createStockCard(stock, index)
     ).join('');
 }
 
 /**
- * 创建股票卡片HTML - 紧凑版
+ * 创建股票卡片
  */
 function createStockCard(stock, index) {
     const changeClass = stock.change_pct >= 0 ? 'up' : 'down';
@@ -206,17 +245,160 @@ function createStockCard(stock, index) {
     `;
 }
 
+// ==================== BOLL策略 ====================
+
 /**
- * 格式化数字
+ * 更新BOLL状态显示
  */
-function formatNumber(num) {
-    if (num >= 100000000) {
-        return (num / 100000000).toFixed(2) + '亿';
-    } else if (num >= 10000) {
-        return (num / 10000).toFixed(2) + '万';
+function updateBollStatus(status, text) {
+    const statusDot = elements.bollUpdateStatus.querySelector('.status-dot');
+    const statusText = elements.bollUpdateStatus.querySelector('.status-text');
+    
+    statusDot.className = 'status-dot boll-dot';
+    if (status === 'loading') {
+        statusDot.style.background = 'var(--boll-primary)';
+    } else {
+        statusDot.style.background = 'var(--boll-light)';
     }
-    return num.toFixed(2);
+    statusText.textContent = text;
 }
+
+/**
+ * 获取BOLL策略推荐
+ */
+async function fetchBollRecommendations(forceRefresh = false) {
+    try {
+        showBollLoading(true);
+        updateBollStatus('loading', '分析中...');
+        
+        const url = forceRefresh 
+            ? `${API_BASE}/api/boll_recommendations?refresh=true`
+            : `${API_BASE}/api/boll_recommendations`;
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.loading) {
+            setTimeout(() => fetchBollRecommendations(false), 3000);
+            return;
+        }
+        
+        if (result.success && result.data) {
+            renderBollRecommendations(result.data);
+            updateBollStatus('ready', `${result.data.last_update || '刚刚'}`);
+        } else {
+            showBollEmpty();
+            updateBollStatus('error', '获取失败');
+        }
+    } catch (error) {
+        console.error('获取BOLL推荐失败:', error);
+        showBollEmpty();
+        updateBollStatus('error', '网络错误');
+    }
+}
+
+/**
+ * 显示BOLL加载状态
+ */
+function showBollLoading(show) {
+    elements.bollLoadingState.style.display = show ? 'flex' : 'none';
+    elements.bollEmptyState.style.display = 'none';
+    if (show) elements.bollStockGrid.innerHTML = '';
+}
+
+/**
+ * 显示BOLL空状态
+ */
+function showBollEmpty() {
+    elements.bollLoadingState.style.display = 'none';
+    elements.bollEmptyState.style.display = 'flex';
+    elements.bollStockGrid.innerHTML = '';
+    elements.bollRecCount.textContent = '0';
+}
+
+/**
+ * 渲染BOLL推荐股票
+ */
+function renderBollRecommendations(data) {
+    const { recommendations, count } = data;
+    elements.bollRecCount.textContent = count;
+    showBollLoading(false);
+    
+    if (!recommendations || recommendations.length === 0) {
+        showBollEmpty();
+        return;
+    }
+    
+    elements.bollStockGrid.innerHTML = recommendations.map((stock, index) => 
+        createBollStockCard(stock, index)
+    ).join('');
+}
+
+/**
+ * 创建BOLL股票卡片
+ */
+function createBollStockCard(stock, index) {
+    const changeClass = stock.change_pct >= 0 ? 'up' : 'down';
+    const changeSign = stock.change_pct >= 0 ? '+' : '';
+    const volumeSign = stock.volume_change.volume_change_pct >= 0 ? '+' : '';
+    
+    return `
+        <div class="stock-card">
+            <div class="stock-header">
+                <div class="stock-info">
+                    <h3>${stock.name}</h3>
+                    <span class="stock-code">${stock.code}</span>
+                </div>
+                <div class="stock-score">
+                    <span class="score-value">${stock.score}</span>
+                    <span class="score-label">评分</span>
+                </div>
+            </div>
+            
+            <div class="stock-price-row">
+                <div>
+                    <span class="price-value">${stock.latest_price.toFixed(2)}</span>
+                    <span class="price-unit">元</span>
+                </div>
+                <div class="price-change ${changeClass}">${changeSign}${stock.change_pct.toFixed(2)}%</div>
+            </div>
+            
+            <div class="stock-sector">
+                📈 ${stock.sector} <span class="sector-rank">#${stock.sector_rank}</span>
+                ${stock.market_cap ? `<span class="market-cap">${stock.market_cap.toFixed(0)}亿</span>` : ''}
+            </div>
+            
+            <div class="stock-metrics">
+                <div class="metric">
+                    <div class="metric-label">MA20</div>
+                    <div class="metric-value">${stock.ma20.toFixed(2)}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">量能</div>
+                    <div class="metric-value positive">${volumeSign}${stock.volume_change.volume_change_pct.toFixed(0)}%</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">资金</div>
+                    <div class="metric-value">${stock.money_flow.consecutive_inflow}天</div>
+                </div>
+            </div>
+            
+            <div class="stock-indicators">
+                <span class="boll-indicator ${stock.boll.is_contracting ? 'active' : ''}">BOLL收缩${stock.boll.is_contracting ? '✓' : ''}</span>
+                <span class="boll-indicator ${stock.boll.breakthrough_ma20 ? 'active' : ''}">突破MA20${stock.boll.breakthrough_ma20 ? '✓' : ''}</span>
+                <span class="boll-indicator ${stock.boll.above_ma20 ? 'active' : ''}">站上MA20${stock.boll.above_ma20 ? '✓' : ''}</span>
+                <span class="boll-indicator ${stock.volume_change.is_amplified ? 'active' : ''}">量能放大${stock.volume_change.is_amplified ? '✓' : ''}</span>
+            </div>
+            
+            <div class="stop-loss">
+                <span>止损 -5%</span>
+                <span>¥${stock.stop_loss.toFixed(2)}</span>
+            </div>
+        </div>
+    `;
+}
+
+// ==================== 飞书推送 ====================
 
 /**
  * 推送到飞书群
@@ -226,7 +408,7 @@ async function pushToFeishu() {
     
     try {
         btn.classList.add('loading');
-        btn.innerHTML = '<span class="feishu-icon">📤</span> 推送中...';
+        btn.innerHTML = '📤 推送中...';
         
         const response = await fetch(`${API_BASE}/api/push_feishu`, {
             method: 'POST',
@@ -236,7 +418,6 @@ async function pushToFeishu() {
             body: JSON.stringify({})
         });
         
-        // 检查响应状态
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -246,12 +427,11 @@ async function pushToFeishu() {
         if (result.success) {
             btn.classList.remove('loading');
             btn.classList.add('success');
-            btn.innerHTML = '<span class="feishu-icon">✅</span> 推送成功';
+            btn.innerHTML = '✅ 推送成功';
             
-            // 3秒后恢复按钮状态
             setTimeout(() => {
                 btn.classList.remove('success');
-                btn.innerHTML = '<span class="feishu-icon">📤</span> 推送飞书';
+                btn.innerHTML = '📤 飞书';
             }, 3000);
         } else {
             throw new Error(result.error || 'Push failed');
@@ -259,22 +439,31 @@ async function pushToFeishu() {
     } catch (error) {
         console.error('推送飞书失败:', error);
         btn.classList.remove('loading');
-        btn.innerHTML = '<span class="feishu-icon">❌</span> 推送失败';
+        btn.innerHTML = '❌ 失败';
         
-        // 显示错误提示
-        alert('推送失败: ' + error.message + '\n\n请检查 config.py 中的 FEISHU_WEBHOOK_URL 配置');
+        alert('推送失败: ' + error.message);
         
-        // 3秒后恢复按钮状态
         setTimeout(() => {
-            btn.innerHTML = '<span class="feishu-icon">📤</span> 推送飞书';
+            btn.innerHTML = '📤 飞书';
         }, 3000);
     }
+}
+
+// 格式化数字
+function formatNumber(num) {
+    if (num >= 100000000) {
+        return (num / 100000000).toFixed(2) + '亿';
+    } else if (num >= 10000) {
+        return (num / 10000).toFixed(2) + '万';
+    }
+    return num.toFixed(2);
 }
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', init);
 
 // 暴露函数给HTML使用
+window.switchTab = switchTab;
 window.fetchRecommendations = fetchRecommendations;
+window.fetchBollRecommendations = fetchBollRecommendations;
 window.pushToFeishu = pushToFeishu;
-

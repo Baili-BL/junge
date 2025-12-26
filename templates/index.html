@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>钧哥天下无双 - 股票推荐系统</title>
+    <title>股票推荐系统</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
@@ -20,97 +20,198 @@
         <header class="header">
             <div class="logo">
                 <span class="logo-icon">📈</span>
-                <h1 class="logo-text">钧哥天下无双</h1>
+                <h1 class="logo-text">智能选股</h1>
             </div>
-            <div class="header-center">
-                <div class="strategy-tags">
-                    <span class="tag tag-primary">题材主线</span>
-                    <span class="tag-arrow">›</span>
-                    <span class="tag tag-primary">技术突破</span>
-                    <span class="tag-arrow">›</span>
-                    <span class="tag tag-primary">商业模式</span>
-                    <span class="tag-arrow">›</span>
-                    <span class="tag tag-primary">财务</span>
-                </div>
-            </div>
+            
+            <!-- Tab切换 -->
+            <nav class="strategy-tabs">
+                <button class="tab-btn active" data-tab="junge" onclick="switchTab('junge')">
+                    <span class="tab-icon">🏆</span>
+                    <span class="tab-name">钧哥天下无双</span>
+                </button>
+                <button class="tab-btn" data-tab="boll" onclick="switchTab('boll')">
+                    <span class="tab-icon">📊</span>
+                    <span class="tab-name">BOLL中线策略</span>
+                </button>
+            </nav>
+            
             <div class="header-actions">
                 <span class="date" id="currentDate"></span>
-                <button class="btn-feishu" id="btnFeishu" onclick="pushToFeishu()">📤 飞书</button>
-                <button class="btn-refresh" id="btnRefresh" onclick="fetchRecommendations(true)">🔄 刷新</button>
             </div>
         </header>
 
-        <!-- 主内容区 - 左右布局 -->
-        <main class="main-content">
-            <!-- 左侧：推荐股票 -->
-            <section class="left-panel">
-                <div class="panel-header">
-                    <h2>🏆 今日推荐 <span class="count-badge" id="recCount">0</span></h2>
+        <!-- 钧哥天下无双页面 -->
+        <main class="page-content" id="jungePage">
+            <div class="page-header">
+                <div class="page-title">
+                    <h2>🏆 钧哥天下无双 <span class="count-badge" id="recCount">0</span></h2>
+                    <p class="page-subtitle">题材主线 › 技术突破 › 商业模式 › 财务</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn-feishu" id="btnFeishu" onclick="pushToFeishu()">📤 飞书</button>
+                    <button class="btn-refresh" id="btnRefresh" onclick="fetchRecommendations(true)">🔄 刷新</button>
                     <span class="status" id="updateStatus">
                         <span class="status-dot"></span>
                         <span class="status-text">就绪</span>
                     </span>
                 </div>
-                
-                <div class="loading-state" id="loadingState">
-                    <div class="loader">
-                        <div class="loader-ring"></div>
-                        <div class="loader-ring"></div>
-                    </div>
-                    <p>正在分析市场数据...</p>
-                </div>
-                
-                <div class="empty-state" id="emptyState" style="display: none;">
-                    <span class="empty-icon">📭</span>
-                    <p>今日暂无符合条件的推荐</p>
-                </div>
-                
-                <div class="stock-grid" id="stockGrid"></div>
-            </section>
-
-            <!-- 右侧：策略信息 -->
-            <aside class="right-panel">
-                <!-- 核心纪律 -->
-                <div class="info-card">
-                    <h3>💡 核心纪律</h3>
-                    <div class="rules-compact">
-                        <div class="rule-item">⏰ 题材3天不发酵即切换</div>
-                        <div class="rule-item">📊 仅限主板(60/00)</div>
-                        <div class="rule-item">💰 低吸为主，回调介入</div>
-                    </div>
-                </div>
-
-                <!-- 量化标准 -->
-                <div class="info-card">
-                    <h3>📋 量化标准</h3>
-                    <div class="criteria-compact">
-                        <div class="criteria-item">
-                            <span class="criteria-label">💵 资金</span>
-                            <span class="criteria-desc">连续3日净流入，机构占比>25%</span>
+            </div>
+            
+            <div class="content-wrapper">
+                <section class="stocks-panel">
+                    <div class="loading-state" id="loadingState">
+                        <div class="loader">
+                            <div class="loader-ring"></div>
+                            <div class="loader-ring"></div>
                         </div>
-                        <div class="criteria-item">
-                            <span class="criteria-label">📊 量能</span>
-                            <span class="criteria-desc">首日放量100-300%，次日温和放大</span>
-                        </div>
-                        <div class="criteria-item">
-                            <span class="criteria-label">📈 涨幅</span>
-                            <span class="criteria-desc">龙头2连板+，中军放量涨5%+</span>
+                        <p>正在分析市场数据...</p>
+                    </div>
+                    
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <span class="empty-icon">📭</span>
+                        <p>今日暂无符合条件的推荐</p>
+                    </div>
+                    
+                    <div class="stock-grid" id="stockGrid"></div>
+                </section>
+                
+                <aside class="info-panel">
+                    <div class="info-card">
+                        <h3>💡 核心纪律</h3>
+                        <div class="rules-list">
+                            <div class="rule-item">⏰ 题材3天不发酵即切换</div>
+                            <div class="rule-item">📊 仅限主板股票(60/00)</div>
+                            <div class="rule-item">💰 低吸为主，回调介入</div>
+                            <div class="rule-item">🎯 市值1000亿以下</div>
                         </div>
                     </div>
-                </div>
-
-                <!-- 退出信号 -->
-                <div class="info-card warning-card">
-                    <h3>⚠️ 退出信号</h3>
-                    <div class="signals-compact">
-                        <span class="signal-tag">资金流出</span>
-                        <span class="signal-tag">量能萎缩50%+</span>
-                        <span class="signal-tag">涨停梯队瓦解</span>
-                        <span class="signal-tag">中军破5日线</span>
-                        <span class="signal-tag">连续2日收阴</span>
+                    <div class="info-card">
+                        <h3>📋 量化标准</h3>
+                        <div class="criteria-list">
+                            <div class="criteria-row">
+                                <span class="criteria-icon">💵</span>
+                                <div>
+                                    <strong>资金</strong>
+                                    <span>连续3日净流入</span>
+                                </div>
+                            </div>
+                            <div class="criteria-row">
+                                <span class="criteria-icon">📊</span>
+                                <div>
+                                    <strong>量能</strong>
+                                    <span>放量100-300%</span>
+                                </div>
+                            </div>
+                            <div class="criteria-row">
+                                <span class="criteria-icon">📈</span>
+                                <div>
+                                    <strong>技术</strong>
+                                    <span>站上5日/10日线</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="info-card warning-card">
+                        <h3>⚠️ 退出信号</h3>
+                        <div class="warning-tags">
+                            <span>资金流出</span>
+                            <span>量能萎缩50%+</span>
+                            <span>涨停梯队瓦解</span>
+                            <span>破5日线</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+
+        <!-- BOLL中线策略页面 -->
+        <main class="page-content boll-page" id="bollPage" style="display: none;">
+            <div class="page-header boll-header">
+                <div class="page-title">
+                    <h2>📊 BOLL中线策略 <span class="count-badge boll-badge" id="bollRecCount">0</span></h2>
+                    <p class="page-subtitle boll-subtitle">BOLL收缩 › 突破MA20 › 资金流入 › 量能放大</p>
                 </div>
-            </aside>
+                <div class="page-actions">
+                    <button class="btn-boll-refresh" id="btnBollRefresh" onclick="fetchBollRecommendations(true)">🔄 刷新</button>
+                    <span class="status" id="bollUpdateStatus">
+                        <span class="status-dot boll-dot"></span>
+                        <span class="status-text">就绪</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="content-wrapper">
+                <section class="stocks-panel">
+                    <div class="loading-state boll-loading" id="bollLoadingState">
+                        <div class="loader boll-loader">
+                            <div class="loader-ring"></div>
+                            <div class="loader-ring"></div>
+                        </div>
+                        <p>正在分析BOLL指标...</p>
+                    </div>
+                    
+                    <div class="empty-state" id="bollEmptyState" style="display: none;">
+                        <span class="empty-icon">📭</span>
+                        <p>今日暂无符合条件的推荐</p>
+                    </div>
+                    
+                    <div class="stock-grid boll-grid" id="bollStockGrid"></div>
+                </section>
+                
+                <aside class="info-panel boll-info-panel">
+                    <div class="info-card boll-card">
+                        <h3>💡 策略原理</h3>
+                        <div class="rules-list">
+                            <div class="rule-item boll-rule">📉 BOLL带宽收缩代表蓄势</div>
+                            <div class="rule-item boll-rule">📈 突破MA20是启动信号</div>
+                            <div class="rule-item boll-rule">💰 资金流入确认主力意图</div>
+                            <div class="rule-item boll-rule">📊 量能放大验证突破有效</div>
+                        </div>
+                    </div>
+                    <div class="info-card boll-card">
+                        <h3>📋 筛选条件</h3>
+                        <div class="criteria-list">
+                            <div class="criteria-row boll-criteria">
+                                <span class="criteria-icon">📉</span>
+                                <div>
+                                    <strong>BOLL收缩</strong>
+                                    <span>带宽连续5日缩小</span>
+                                </div>
+                            </div>
+                            <div class="criteria-row boll-criteria">
+                                <span class="criteria-icon">📈</span>
+                                <div>
+                                    <strong>突破MA20</strong>
+                                    <span>股价站上20日均线</span>
+                                </div>
+                            </div>
+                            <div class="criteria-row boll-criteria">
+                                <span class="criteria-icon">💵</span>
+                                <div>
+                                    <strong>资金流入</strong>
+                                    <span>连续2日以上流入</span>
+                                </div>
+                            </div>
+                            <div class="criteria-row boll-criteria">
+                                <span class="criteria-icon">📊</span>
+                                <div>
+                                    <strong>量能放大</strong>
+                                    <span>较5日均量放大30%+</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-card boll-warning-card">
+                        <h3>⚠️ 退出信号</h3>
+                        <div class="warning-tags boll-tags">
+                            <span>跌破MA20</span>
+                            <span>BOLL开口向下</span>
+                            <span>量能萎缩</span>
+                            <span>资金流出</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
         </main>
 
         <!-- 底部状态栏 -->

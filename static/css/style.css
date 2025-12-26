@@ -1,21 +1,29 @@
-/* 钧哥天下无双 - 紧凑单屏布局 */
+/* 股票推荐系统 - Tab页面布局 */
 
 :root {
+    /* 钧哥策略 - 金色系 */
     --gold-primary: #FFD700;
     --gold-light: #FFEC8B;
     --gold-dark: #B8860B;
     --gold-glow: rgba(255, 215, 0, 0.3);
+    
+    /* BOLL策略 - 紫蓝色系 */
+    --boll-primary: #A855F7;
+    --boll-light: #C084FC;
+    --boll-dark: #7C3AED;
+    --boll-glow: rgba(168, 85, 247, 0.3);
+    
+    /* 通用色 */
     --cyber-blue: #00D4FF;
-    --cyber-blue-dark: #0099CC;
     --rise-red: #FF4757;
     --fall-green: #2ED573;
     --bg-primary: #0A0E17;
     --bg-secondary: #111827;
-    --bg-card: rgba(17, 24, 39, 0.9);
+    --bg-card: rgba(17, 24, 39, 0.95);
     --text-primary: #F8FAFC;
     --text-secondary: #94A3B8;
     --text-muted: #64748B;
-    --border-color: rgba(255, 215, 0, 0.2);
+    --border-color: rgba(255, 255, 255, 0.1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,12 +36,13 @@ body {
     min-height: 100vh;
 }
 
-/* 容器 */
 .app-container {
     max-width: 1600px;
     margin: 0 auto;
-    padding: 0 16px;
-    position: relative;
+    padding: 0 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 背景效果 */
@@ -41,9 +50,9 @@ body {
     position: fixed;
     inset: 0;
     background-image: 
-        linear-gradient(rgba(255, 215, 0, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 215, 0, 0.02) 1px, transparent 1px);
-    background-size: 40px 40px;
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
     pointer-events: none;
     z-index: -2;
 }
@@ -51,87 +60,187 @@ body {
 .bg-glow {
     position: fixed;
     border-radius: 50%;
-    filter: blur(80px);
+    filter: blur(100px);
     pointer-events: none;
     z-index: -1;
     opacity: 0.4;
+    transition: all 0.5s ease;
 }
 
-.bg-glow-1 { width: 400px; height: 400px; background: var(--gold-glow); top: -150px; right: -100px; }
-.bg-glow-2 { width: 300px; height: 300px; background: rgba(0, 212, 255, 0.15); bottom: -100px; left: -100px; }
+.bg-glow-1 { 
+    width: 500px; 
+    height: 500px; 
+    background: var(--gold-glow); 
+    top: -200px; 
+    right: -100px; 
+}
+
+.bg-glow-2 { 
+    width: 400px; 
+    height: 400px; 
+    background: rgba(0, 212, 255, 0.15); 
+    bottom: -150px; 
+    left: -100px; 
+}
+
+/* BOLL页面背景切换 */
+body.boll-active .bg-glow-1 {
+    background: var(--boll-glow);
+}
 
 /* 顶部导航 */
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 0;
+    padding: 16px 0;
     border-bottom: 1px solid var(--border-color);
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
-.logo-icon { font-size: 1.5rem; }
+.logo-icon { font-size: 1.8rem; }
 
 .logo-text {
     font-family: 'Orbitron', sans-serif;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     font-weight: 900;
-    background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
+    background: linear-gradient(135deg, var(--gold-primary), var(--cyber-blue));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.header-center {
-    flex: 1;
+/* Tab切换 */
+.strategy-tabs {
     display: flex;
-    justify-content: center;
+    gap: 8px;
+    background: var(--bg-card);
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
 }
 
-.strategy-tags {
+.tab-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-}
-
-.tag {
-    padding: 4px 10px;
-    background: rgba(255, 215, 0, 0.1);
-    border: 1px solid var(--gold-dark);
-    border-radius: 12px;
-    font-size: 0.75rem;
-    color: var(--gold-primary);
-}
-
-.tag-arrow {
+    gap: 8px;
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
     color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active[data-tab="junge"] {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+    color: var(--bg-primary);
+    box-shadow: 0 4px 15px var(--gold-glow);
+}
+
+.tab-btn.active[data-tab="boll"] {
+    background: linear-gradient(135deg, var(--boll-dark), var(--boll-primary));
+    color: #fff;
+    box-shadow: 0 4px 15px var(--boll-glow);
+}
+
+.tab-icon { font-size: 1.1rem; }
 
 .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    background: var(--bg-card);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+/* 页面内容 */
+.page-content {
+    flex: 1;
+    padding: 20px 0;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.page-title h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gold-primary);
+    margin-bottom: 4px;
+}
+
+.boll-header .page-title h2 {
+    color: var(--boll-primary);
+}
+
+.page-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.boll-subtitle {
+    color: var(--boll-light);
+}
+
+.count-badge {
+    background: var(--gold-primary);
+    color: var(--bg-primary);
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+.boll-badge {
+    background: var(--boll-primary);
+    color: #fff;
+}
+
+.page-actions {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.date {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    padding: 4px 10px;
-    background: var(--bg-card);
-    border-radius: 6px;
-}
-
-.btn-refresh, .btn-feishu {
-    padding: 6px 12px;
+.btn-refresh, .btn-feishu, .btn-boll-refresh {
+    padding: 8px 16px;
     border: none;
-    border-radius: 6px;
-    font-size: 0.8rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -147,69 +256,60 @@ body {
     color: #fff;
 }
 
-.btn-refresh:hover, .btn-feishu:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+.btn-boll-refresh {
+    background: linear-gradient(135deg, var(--boll-dark), var(--boll-primary));
+    color: #fff;
 }
 
-.btn-feishu.loading, .btn-refresh.loading { opacity: 0.7; }
-.btn-feishu.success { background: linear-gradient(135deg, #2ed573, #26ab5f); }
-
-/* 主内容区 - 左右布局 */
-.main-content {
-    display: flex;
-    gap: 16px;
-    padding: 12px 0;
-}
-
-/* 左侧面板 */
-.left-panel {
-    flex: 1;
-    min-width: 0;
-}
-
-.panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.panel-header h2 {
-    font-size: 1.1rem;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.count-badge {
-    background: var(--gold-primary);
-    color: var(--bg-primary);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.75rem;
+.btn-refresh:hover, .btn-feishu:hover, .btn-boll-refresh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 .status {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
+    padding: 6px 12px;
+    background: var(--bg-card);
+    border-radius: 6px;
 }
 
 .status-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--fall-green);
     animation: pulse 2s infinite;
 }
 
+.boll-dot {
+    background: var(--boll-light);
+}
+
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+/* 内容布局 */
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+}
+
+.stocks-panel {
+    flex: 1;
+    min-width: 0;
+}
+
+.info-panel {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 /* 加载状态 */
@@ -218,35 +318,43 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px;
-    gap: 12px;
+    padding: 60px;
+    gap: 16px;
     color: var(--text-muted);
 }
 
 .loader {
     position: relative;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
 }
 
 .loader-ring {
     position: absolute;
     width: 100%;
     height: 100%;
-    border: 2px solid transparent;
+    border: 3px solid transparent;
     border-top-color: var(--gold-primary);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 1.2s linear infinite;
 }
 
 .loader-ring:nth-child(2) {
-    width: 70%;
-    height: 70%;
-    top: 15%;
-    left: 15%;
+    width: 75%;
+    height: 75%;
+    top: 12.5%;
+    left: 12.5%;
     border-top-color: var(--cyber-blue);
     animation-direction: reverse;
-    animation-duration: 0.8s;
+    animation-duration: 0.9s;
+}
+
+.boll-loading .loader-ring {
+    border-top-color: var(--boll-primary);
+}
+
+.boll-loading .loader-ring:nth-child(2) {
+    border-top-color: var(--boll-light);
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -256,72 +364,91 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px;
+    padding: 60px;
     color: var(--text-muted);
 }
 
-.empty-icon { font-size: 2.5rem; opacity: 0.5; margin-bottom: 8px; }
+.empty-icon { font-size: 3rem; opacity: 0.5; margin-bottom: 12px; }
 
-/* 股票卡片网格 - 6只股票，3列2行 */
+/* 股票网格 */
 .stock-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 16px;
 }
 
-/* 股票卡片 - 紧凑版 */
+/* 股票卡片 */
 .stock-card {
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    transition: all 0.2s;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.3s ease;
 }
 
 .stock-card:hover {
     border-color: var(--gold-primary);
-    box-shadow: 0 4px 20px var(--gold-glow);
+    box-shadow: 0 8px 30px var(--gold-glow);
+    transform: translateY(-2px);
+}
+
+.boll-grid .stock-card {
+    border-color: rgba(168, 85, 247, 0.2);
+}
+
+.boll-grid .stock-card:hover {
+    border-color: var(--boll-primary);
+    box-shadow: 0 8px 30px var(--boll-glow);
 }
 
 .stock-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 6px;
-    padding-bottom: 6px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--border-color);
 }
 
 .stock-info h3 {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
 }
 
 .stock-code {
     font-family: 'Orbitron', monospace;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
 }
 
 .stock-score {
     text-align: center;
-    padding: 4px 8px;
+    padding: 8px 12px;
     background: rgba(255, 215, 0, 0.15);
-    border-radius: 6px;
+    border-radius: 10px;
     border: 1px solid var(--gold-dark);
+}
+
+.boll-grid .stock-score {
+    background: rgba(168, 85, 247, 0.15);
+    border-color: var(--boll-dark);
 }
 
 .score-value {
     font-family: 'Orbitron', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-weight: 900;
     color: var(--gold-primary);
     line-height: 1;
 }
 
+.boll-grid .score-value {
+    color: var(--boll-primary);
+}
+
 .score-label {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
 }
 
@@ -329,26 +456,26 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 
 .price-value {
     font-family: 'Orbitron', sans-serif;
-    font-size: 1.3rem;
+    font-size: 1.6rem;
     font-weight: 700;
 }
 
 .price-unit {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
     margin-left: 2px;
 }
 
 .price-change {
-    padding: 3px 8px;
-    border-radius: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
     font-family: 'Orbitron', monospace;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 600;
 }
 
@@ -356,54 +483,53 @@ body {
 .price-change.down { background: rgba(46, 213, 115, 0.15); color: var(--fall-green); }
 
 .stock-sector {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.7rem;
+    gap: 6px;
+    font-size: 0.8rem;
     color: var(--cyber-blue);
-    margin-bottom: 6px;
+    margin-bottom: 12px;
 }
 
 .sector-rank {
     background: var(--cyber-blue);
     color: var(--bg-primary);
-    padding: 1px 6px;
+    padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 700;
 }
 
 .market-cap {
     background: rgba(255, 215, 0, 0.2);
     color: var(--gold-primary);
-    padding: 1px 6px;
+    padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.65rem;
-    margin-left: 4px;
+    font-size: 0.7rem;
 }
 
 .stock-metrics {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    margin-bottom: 6px;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
 .metric {
-    padding: 4px;
+    padding: 8px;
     background: var(--bg-secondary);
-    border-radius: 4px;
+    border-radius: 8px;
     text-align: center;
 }
 
 .metric-label {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
-    margin-bottom: 1px;
+    margin-bottom: 2px;
 }
 
 .metric-value {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 600;
 }
 
@@ -413,131 +539,176 @@ body {
 .stock-indicators {
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
-    margin-bottom: 6px;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
 .indicator {
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
 }
 
 .indicator.pass { background: rgba(46, 213, 115, 0.15); color: var(--fall-green); }
 .indicator.fail { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
 
+.boll-indicator {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    background: rgba(168, 85, 247, 0.1);
+    color: var(--text-muted);
+}
+
+.boll-indicator.active {
+    background: rgba(168, 85, 247, 0.25);
+    color: var(--boll-light);
+}
+
 .stop-loss {
     display: flex;
     justify-content: space-between;
-    padding: 4px 8px;
+    padding: 8px 12px;
     background: rgba(255, 71, 87, 0.1);
-    border-radius: 4px;
+    border-radius: 8px;
     border: 1px solid rgba(255, 71, 87, 0.2);
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     color: var(--rise-red);
 }
 
-/* 右侧面板 */
-.right-panel {
-    width: 260px;
+/* 右侧信息卡片 */
+.info-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.info-card h3 {
+    font-size: 1rem;
+    color: var(--gold-primary);
+    margin-bottom: 12px;
+}
+
+.boll-card {
+    border-color: rgba(168, 85, 247, 0.2);
+}
+
+.boll-card h3 {
+    color: var(--boll-primary);
+}
+
+.rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rule-item {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding: 8px 10px;
+    background: rgba(0, 212, 255, 0.08);
+    border-radius: 6px;
+    border-left: 3px solid var(--cyber-blue);
+}
+
+.boll-rule {
+    background: rgba(168, 85, 247, 0.08);
+    border-left-color: var(--boll-primary);
+}
+
+.criteria-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.info-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
+.criteria-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
 }
 
-.info-card h3 {
+.criteria-icon {
+    font-size: 1.2rem;
+    width: 28px;
+    text-align: center;
+}
+
+.criteria-row div {
+    flex: 1;
+}
+
+.criteria-row strong {
+    display: block;
     font-size: 0.85rem;
-    margin-bottom: 8px;
-    color: var(--gold-primary);
-}
-
-.rules-compact {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.rule-item {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    padding: 5px 8px;
-    background: rgba(0, 212, 255, 0.08);
-    border-radius: 4px;
-    border-left: 2px solid var(--cyber-blue);
-}
-
-.criteria-compact {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.criteria-item {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
-
-.criteria-label {
-    font-size: 0.75rem;
-    font-weight: 600;
     color: var(--text-primary);
+    margin-bottom: 2px;
 }
 
-.criteria-desc {
-    font-size: 0.7rem;
+.criteria-row span {
+    font-size: 0.75rem;
     color: var(--text-muted);
-    line-height: 1.3;
+}
+
+.boll-criteria strong {
+    color: var(--boll-light);
 }
 
 .warning-card {
-    border-color: rgba(255, 71, 87, 0.3);
+    border-color: rgba(255, 71, 87, 0.2);
 }
 
 .warning-card h3 {
     color: var(--rise-red);
 }
 
-.signals-compact {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+.boll-warning-card {
+    border-color: rgba(168, 85, 247, 0.2);
 }
 
-.signal-tag {
-    padding: 3px 6px;
+.boll-warning-card h3 {
+    color: var(--boll-primary);
+}
+
+.warning-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.warning-tags span {
+    padding: 4px 10px;
     background: rgba(255, 71, 87, 0.1);
     border: 1px solid rgba(255, 71, 87, 0.2);
-    border-radius: 3px;
-    font-size: 0.65rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
     color: var(--text-secondary);
+}
+
+.boll-tags span {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: rgba(168, 85, 247, 0.2);
 }
 
 /* 底部 */
 .footer {
-    padding: 10px 0;
+    padding: 16px 0;
     border-top: 1px solid var(--border-color);
     text-align: center;
-    margin-top: 12px;
 }
 
 .disclaimer {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--rise-red);
     opacity: 0.8;
 }
 
 /* 滚动条 */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
 
 /* 响应式 */
 @media (max-width: 1200px) {
@@ -545,9 +716,10 @@ body {
 }
 
 @media (max-width: 900px) {
-    .main-content { flex-direction: column; }
-    .right-panel { width: 100%; flex-direction: row; flex-wrap: wrap; }
-    .info-card { flex: 1; min-width: 200px; }
+    .content-wrapper { flex-direction: column; }
+    .info-panel { width: 100%; flex-direction: row; flex-wrap: wrap; }
+    .info-card { flex: 1; min-width: 250px; }
     .stock-grid { grid-template-columns: 1fr; }
-    .header-center { display: none; }
+    .strategy-tabs { flex-direction: column; }
+    .header { flex-wrap: wrap; gap: 12px; }
 }
