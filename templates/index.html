@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钧哥天下无双 - 股票推荐系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 动态背景 -->
+        <div class="bg-grid"></div>
+        <div class="bg-glow bg-glow-1"></div>
+        <div class="bg-glow bg-glow-2"></div>
+        
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">📈</span>
+                <h1 class="logo-text">钧哥天下无双</h1>
+            </div>
+            <div class="header-center">
+                <div class="strategy-tags">
+                    <span class="tag tag-primary">题材主线</span>
+                    <span class="tag-arrow">›</span>
+                    <span class="tag tag-primary">技术突破</span>
+                    <span class="tag-arrow">›</span>
+                    <span class="tag tag-primary">商业模式</span>
+                    <span class="tag-arrow">›</span>
+                    <span class="tag tag-primary">财务</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <span class="date" id="currentDate"></span>
+                <button class="btn-feishu" id="btnFeishu" onclick="pushToFeishu()">📤 飞书</button>
+                <button class="btn-refresh" id="btnRefresh" onclick="fetchRecommendations(true)">🔄 刷新</button>
+            </div>
+        </header>
+
+        <!-- 主内容区 - 左右布局 -->
+        <main class="main-content">
+            <!-- 左侧：推荐股票 -->
+            <section class="left-panel">
+                <div class="panel-header">
+                    <h2>🏆 今日推荐 <span class="count-badge" id="recCount">0</span></h2>
+                    <span class="status" id="updateStatus">
+                        <span class="status-dot"></span>
+                        <span class="status-text">就绪</span>
+                    </span>
+                </div>
+                
+                <div class="loading-state" id="loadingState">
+                    <div class="loader">
+                        <div class="loader-ring"></div>
+                        <div class="loader-ring"></div>
+                    </div>
+                    <p>正在分析市场数据...</p>
+                </div>
+                
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <span class="empty-icon">📭</span>
+                    <p>今日暂无符合条件的推荐</p>
+                </div>
+                
+                <div class="stock-grid" id="stockGrid"></div>
+            </section>
+
+            <!-- 右侧：策略信息 -->
+            <aside class="right-panel">
+                <!-- 核心纪律 -->
+                <div class="info-card">
+                    <h3>💡 核心纪律</h3>
+                    <div class="rules-compact">
+                        <div class="rule-item">⏰ 题材3天不发酵即切换</div>
+                        <div class="rule-item">📊 仅限主板(60/00)</div>
+                        <div class="rule-item">💰 低吸为主，回调介入</div>
+                    </div>
+                </div>
+
+                <!-- 量化标准 -->
+                <div class="info-card">
+                    <h3>📋 量化标准</h3>
+                    <div class="criteria-compact">
+                        <div class="criteria-item">
+                            <span class="criteria-label">💵 资金</span>
+                            <span class="criteria-desc">连续3日净流入，机构占比>25%</span>
+                        </div>
+                        <div class="criteria-item">
+                            <span class="criteria-label">📊 量能</span>
+                            <span class="criteria-desc">首日放量100-300%，次日温和放大</span>
+                        </div>
+                        <div class="criteria-item">
+                            <span class="criteria-label">📈 涨幅</span>
+                            <span class="criteria-desc">龙头2连板+，中军放量涨5%+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 退出信号 -->
+                <div class="info-card warning-card">
+                    <h3>⚠️ 退出信号</h3>
+                    <div class="signals-compact">
+                        <span class="signal-tag">资金流出</span>
+                        <span class="signal-tag">量能萎缩50%+</span>
+                        <span class="signal-tag">涨停梯队瓦解</span>
+                        <span class="signal-tag">中军破5日线</span>
+                        <span class="signal-tag">连续2日收阴</span>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- 底部状态栏 -->
+        <footer class="footer">
+            <span class="disclaimer">⚠️ 风险提示：本推荐仅供参考，不构成投资建议。股市有风险，投资需谨慎。</span>
+        </footer>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
